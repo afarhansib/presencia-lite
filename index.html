@@ -5,10 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Presencia Lite</title>
-    <script src="public/tailwindcss.min.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <link rel="manifest" href="manifest.json">
-    <link rel="shortcut icon" href="public/logo.svg" type="image/x-icon">
+    <script src="./public/tailwindcss.min.js"></script>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="shortcut icon" href="./public/logo.svg" type="image/x-icon">
     <meta name='mobile-web-app-capable' content='yes'>
     <meta name='apple-mobile-web-app-capable' content='yes'>
     <style>
@@ -23,6 +23,9 @@
 </head>
 
 <body>
+    <script>
+        const BASE_PATH = location.pathname.replace(/\/[^/]*$/, '');
+    </script>
     <div id="app" class="flex flex-col h-[calc(100dvh)]">
 
         <header
@@ -101,7 +104,7 @@
                 })
 
                 function checkForUpdates() {
-                    fetch('/version.json', { cache: 'no-store' })
+                    fetch(BASE_PATH + '/version.json', { cache: 'no-store' })
                         .then(response => response.json())
                         .then(data => {
                             if (data.version !== appVersion.value) {
@@ -145,7 +148,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register(BASE_PATH + '/sw.js')
                     .then(registration => console.log('ServiceWorker registered'))
                     .catch(error => console.log('ServiceWorker registration failed:', error));
             });

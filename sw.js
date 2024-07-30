@@ -1,10 +1,11 @@
+const BASE_PATH = self.location.pathname.replace('/sw.js', '');
 const CACHE_NAME = 'presencia-lite-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
+  BASE_PATH + '/',
+  BASE_PATH + '/index.html',
   'https://unpkg.com/vue@3/dist/vue.global.js',
-  '/public/tailwindcss.min.js',
-  '/public/logo.svg'
+  BASE_PATH + '/public/tailwindcss.min.js',
+  BASE_PATH + '/public/logo.svg'
   // Add other assets you want to cache
 ];
 
