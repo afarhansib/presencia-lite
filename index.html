@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presencia Lite</title>
+    <script src="public/tailwindcss.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <link rel="shortcut icon" href="public/logo.svg" type="image/x-icon">
+    <meta name='mobile-web-app-capable' content='yes'>
+    <meta name='apple-mobile-web-app-capable' content='yes'>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap');
+
+        .dm-serif-text-regular {
+            font-family: "DM Serif Text", serif;
+            font-weight: 400;
+            font-style: normal;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="flex flex-col h-[calc(100dvh)]">
+
+        <header
+            class="flex items-center p-2 gap-3 justify-center relative border-b-4 border-black after:block after:h-1 after:w-10 after:bg-red-600 after:absolute after:right-0 after:-bottom-1">
+            <div>
+                <h1 class="text-5xl dm-serif-text-regular">Presencia</h1>
+            </div>
+            <div class="flex gap-1">
+                <p class="text-red-600 text-sm font-bold border-2 border-red-600 px-2 rounded-md">Lite</p>
+                <p class="text-gray-600 text-sm bg-gray-100 px-2 rounded-md">{{ appVersion }}</p>
+            </div>
+        </header>
+
+        <main class="flex-1 flex flex-col">
+            <div class="flex-1 p-3">
+                <textarea @focus="$event.target.select()" class="w-full p-4 text-center bg-gray-50 rounded-xl"
+                    :placeholder="'Hi there! Click a button to get started. 🐤'">{{ timestamp == '' ? '' : timeData }}</textarea>
+            </div>
+            <div class="flex p-3">
+                <label for="nama" class="w-1/2 flex flex-col gap-2 pr-1.5">
+                    <p class="pl-2 text-gray-600">Nama</p>
+                    <input v-model="nama" class="bg-gray-100 rounded-xl p-3" type="text" name="nama" id="nama">
+                </label>
+                <label for="gaji" class="w-1/2 flex flex-col gap-2 pl-1.5">
+                    <p class="pl-2 text-gray-600">Gaji</p>
+                    <input v-model="gaji" class="bg-gray-100 rounded-xl p-3" type="text" name="gaji" id="gaji">
+                </label>
+            </div>
+            <div class="flex border-t-4 border-black dm-serif-text-regular p-3 gap-3">
+                <button @click="present('hadir')"
+                    class="active:scale-90 w-1/2 grid place-items-center p-3 rounded-2xl text-4xl text-white bg-red-600">Hadir</button>
+                <button @click="present('pulang')"
+                    class="active:scale-90 w-1/2 grid place-items-center p-3 rounded-2xl text-4xl text-white bg-black">Pulang</button>
+            </div>
+        </main>
+
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, watch } = Vue
+
+        createApp({
+            setup() {
+                const appVersion = ref('v1')
+                const timestamp = ref('')
+                const mode = ref('')
+                const timeData = ref('')
+
+                const nama = ref(localStorage.getItem('nama') || '')
+                const gaji = ref(localStorage.getItem('gaji') || '')
+
+                watch(nama, (newValue) => {
+                    localStorage.setItem('nama', newValue)
+                })
+                watch(gaji, (newValue) => {
+                    localStorage.setItem('gaji', newValue)
+                })
+
+                function present(m) {
+                    mode.value = m
+                    const nowDate = new Date()
+                    timestamp.value = toIsoStringWTZ(nowDate)
+                    timeData.value = `${timestamp.value} | ${nama.value} | ${gaji.value} | ${mode.value}`
+
+                    const clipboardData =
+                        event.clipboardData ||
+                        window.clipboardData ||
+                        event.originalEvent?.clipboardData ||
+                        navigator.clipboard
+
+                    clipboardData.writeText(timeData.value)
+                }
+
+                onMounted(() => {
+                    checkForUpdates()
+                })
+
+                function checkForUpdates() {
+                    fetch('/version.json', { cache: 'no-store' })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.version !== appVersion.value) {
+                                alert('A new version is available. Please refresh the page to update.')
+                            }
+                        })
+                        .catch(error => console.error('Error checking for updates:', error))
+                }
+
+                return {
+                    appVersion,
+                    timestamp,
+                    timeData,
+                    nama,
+                    gaji,
+                    mode,
+                    present
+                }
+            },
+
+        }).mount('#app')
+    </script>
+    <script>
+        function toIsoStringWTZ(date) {
+            var tzo = -date.getTimezoneOffset(),
+                dif = tzo >= 0 ? '+' : '-',
+                pad = function (num) {
+                    return (num < 10 ? '0' : '') + num;
+                };
+
+            return date.getFullYear() +
+                '-' + pad(date.getMonth() + 1) +
+                '-' + pad(date.getDate()) +
+                'T' + pad(date.getHours()) +
+                ':' + pad(date.getMinutes()) +
+                ':' + pad(date.getSeconds()) +
+                dif + pad(Math.floor(Math.abs(tzo) / 60)) +
+                ':' + pad(Math.abs(tzo) % 60);
+        }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('ServiceWorker registered'))
+                    .catch(error => console.log('ServiceWorker registration failed:', error));
+            });
+        }
+    </script>
+</body>
+
+</html>
